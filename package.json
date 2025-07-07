@@ -1,0 +1,23 @@
+{
+  "name": "tvattstuga-frontend",
+  "version": "1.0.0",
+  "description": "A Svelte and Deno-based UI for scraping and presenting laundry resources from an ASPX website.",
+  "author": "Petter",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/petternorman/tvattstuga.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview",
+    "server": "deno run --allow-net --allow-read src/server/server.ts"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "svelte": "^4.2.7",
+    "vite": "^5.0.0"
+  }
+}

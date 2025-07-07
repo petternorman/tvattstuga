@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "strict": true
+  },
+  "imports": {
+    "oak": "https://deno.land/x/oak@v12/mod.ts",
+    "dotenv": "https://deno.land/x/dotenv@v3/mod.ts",
+    "deno_dom": "https://deno.land/x/deno_dom/deno-dom-wasm.ts"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-read --allow-env src/server/server.ts"
+  },
+  "nodeModulesDir": "auto"
+}
