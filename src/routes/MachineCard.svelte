@@ -1,10 +1,11 @@
 <script>
-  import { parseCompletionTime, getStateLabel, getStateColor, getBorderColor, wasRecentlyUsed } from './TimerUtils.ts';
+  import { parseCompletionTime, getStateLabel, getStateColor, getBorderColor, wasRecentlyUsed } from './timerUtils.js';
   
   export let machine;
   export let currentTime;
-  
-  // Determine the effective state considering recently used
+
+  // Declare effectiveState and determine the effective state considering recently used
+  let effectiveState;
   $: effectiveState = machine.state === "available" && wasRecentlyUsed(machine.status, currentTime) 
     ? "recently_used" 
     : machine.state;

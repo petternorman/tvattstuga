@@ -1,0 +1,17 @@
+[Unit]
+Description=Tvätt App - Laundry Booking System
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/tvattstuga
+# Environment variables will be loaded from .env file by the Deno app
+ExecStart=/home/pi/.deno/bin/deno task serve
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

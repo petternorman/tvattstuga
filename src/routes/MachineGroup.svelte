@@ -1,23 +1,19 @@
-<script>
+<script lang="ts">
   import MachineCard from './MachineCard.svelte';
-  import { wasRecentlyUsed } from './TimerUtils.ts';
+  import { wasRecentlyUsed } from './timerUtils';
   
-  export let group;
-  export let expanded;
-  export let currentTime;
-  export let onToggle;
-  
-  // Calculate counts for the group
-  $: availableCount = group.machines.filter(m => m.state === 'available').length;
-  $: recentlyUsedCount = group.machines.filter(m => 
-    m.state === 'available' && wasRecentlyUsed(m.status, currentTime)
-  ).length;
+  let { group, expanded, currentTime, toggle } = $props();
+
+  const availableCount = $derived(group.machines.filter((m: any) => m.state === 'available').length);
+  const recentlyUsedCount = $derived(
+    group.machines.filter((m: any) => m.state === 'available' && wasRecentlyUsed(m.status, currentTime)).length
+  );
 </script>
 
 <div class="bg-white shadow rounded-xl sm:rounded-2xl overflow-hidden">
   <button 
     class="w-full flex justify-between items-center p-3 sm:p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-    on:click={onToggle}
+    onclick={toggle}
     aria-expanded={expanded}
     aria-controls="group-{group.name}"
   >

@@ -1,9 +1,5 @@
-<script>
-  export let error;
-  export let updating;
-  export let onRetry;
-  export let showErrorDetails = false;
-  export let onToggleErrorDetails;
+<script lang="ts">
+  let { error, updating, showErrorDetails = false, toggleErrorDetails, retry } = $props();
 </script>
 
 {#if error}
@@ -29,13 +25,13 @@
       </div>
       <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-2">
         <button 
-          on:click={onToggleErrorDetails}
+          onclick={toggleErrorDetails}
           class="text-sm text-red-600 hover:text-red-800 underline text-center"
         >
           {showErrorDetails ? 'Dölj' : 'Visa'} detaljer
         </button>
         <button 
-          on:click={onRetry}
+          onclick={retry}
           disabled={updating}
           class="px-3 py-2 text-sm bg-red-600 text-white rounded hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
         >

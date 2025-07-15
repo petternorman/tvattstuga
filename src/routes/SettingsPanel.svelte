@@ -1,15 +1,23 @@
-<script>
-  import { formatTimer } from './TimerUtils.ts';
-  
-  export let settingsOpen;
-  export let updateInterval;
-  export let intervalOptions;
-  export let updating;
-  export let updateTimer;
-  export let lastUpdateTime;
-  export let onUpdateInterval;
-  export let onManualUpdate;
-  export let onToggleSettings;
+<script lang="ts">
+  import { formatTimer } from './timerUtils.js';
+
+  let { settingsOpen, updateInterval, intervalOptions, updating, updateTimer, lastUpdateTime, event } = $props();
+
+  let localInterval = $state(updateInterval);
+
+  // Keep localInterval in sync with updateInterval prop
+  $effect(() => {
+    if (updateInterval !== localInterval) {
+      localInterval = updateInterval;
+    }
+  });
+
+  function handleIntervalChange(e: Event) {
+    const target = e.target as HTMLSelectElement;
+    const value = Number(target.value);
+    localInterval = value;
+    event('updateInterval', value);
+  }
 </script>
 
 {#if settingsOpen}
@@ -23,8 +31,8 @@
       </label>
       <select 
         id="update-interval"
-        bind:value={updateInterval}
-        on:change={() => onUpdateInterval(updateInterval)}
+        value={localInterval}
+        onchange={handleIntervalChange}
         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
       >
         {#each intervalOptions as option}
@@ -36,7 +44,7 @@
     <!-- Manual Update Button -->
     <div class="mb-4">
       <button 
-        on:click={onManualUpdate}
+        onclick={() => event('manualUpdate')}
         disabled={updating}
         class="w-full px-4 py-2 rounded-md transition-colors flex items-center justify-center space-x-2 text-sm {updating ? 'bg-gray-400 cursor-not-allowed text-gray-600' : 'bg-blue-500 hover:bg-blue-600 text-white'}"
       >
@@ -77,8 +85,8 @@
 {#if settingsOpen}
   <div 
     class="fixed inset-0 z-0" 
-    on:click={onToggleSettings}
-    on:keydown={(e) => e.key === 'Escape' && onToggleSettings()}
+    onclick={() => event('toggleSettings')}
+    onkeydown={(e: KeyboardEvent) => e.key === 'Escape' && event('toggleSettings')}
     tabindex="-1"
     role="button"
     aria-label="Stäng inställningar"

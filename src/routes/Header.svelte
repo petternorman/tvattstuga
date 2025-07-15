@@ -1,5 +1,5 @@
-<script>
-  export let onToggleSettings;
+<script lang="ts">
+  let { onToggleSettings, children } = $props();
 </script>
 
 <div class="flex flex-row justify-between items-center mb-4 sm:mb-6 gap-3">
@@ -8,7 +8,7 @@
   <!-- Settings Button -->
   <div class="relative self-end sm:self-auto">
     <button 
-      on:click={onToggleSettings}
+      onclick={() => onToggleSettings?.()}  
       class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-full transition-colors"
       aria-label="Inställningar"
     >
@@ -18,6 +18,6 @@
       </svg>
     </button>
     
-    <slot />
+    {@render children()}
   </div>
 </div> 

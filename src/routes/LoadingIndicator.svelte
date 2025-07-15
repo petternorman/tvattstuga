@@ -1,5 +1,5 @@
 <script>
-  export let message = "Laddar data...";
+  let { message = 'Laddar data...' } = $props();
 </script>
 
 <div class="text-center py-12">
