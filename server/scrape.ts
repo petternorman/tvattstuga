@@ -17,6 +17,35 @@ interface ResourceGroup {
 await load({ export: true });
 const BASE_URL = Deno.env.get('BASE_URL') || '';
 
+// Helper function to check if a machine should be considered recently used
+function isRecentlyFinished(status: string): boolean {
+	const now = new Date();
+	const currentTime = now.getHours() * 60 + now.getMinutes();
+
+	// Look for time patterns in the status (e.g., "Avslutades 23:40")
+	const timeMatch = status.match(/(\d{1,2}):(\d{2})/);
+	if (!timeMatch) {
+		return false;
+	}
+
+	const finishHour = parseInt(timeMatch[1]);
+	const finishMinute = parseInt(timeMatch[2]);
+	const finishTime = finishHour * 60 + finishMinute;
+
+	// Calculate time difference, handling day boundary crossing
+	let timeDiff;
+	if (currentTime >= finishTime) {
+		// Same day
+		timeDiff = currentTime - finishTime;
+	} else {
+		// Finish time was yesterday (crossed midnight)
+		timeDiff = 24 * 60 - finishTime + currentTime;
+	}
+
+	// Consider recently used if finished within the last 60 minutes
+	return timeDiff <= 60;
+}
+
 export async function scrape(cookie: string): Promise<ResourceGroup[]> {
 	console.log('Starting scrape...');
 
@@ -88,12 +117,8 @@ export async function scrape(cookie: string): Promise<ResourceGroup[]> {
 
 			if (machineName.toLowerCase().includes('ej ledig')) {
 				state = 'not_bookable';
-			} else if (machineName.toLowerCase().includes('ledig')) {
-				// If the machine name says "ledig" (available), it's available regardless of status
-				state = 'available';
 			} else {
-				// For machines that don't explicitly say "ledig" or "ej ledig"
-				// Check status to determine if it's currently in use
+				// First check status to see if machine has specific state information
 				if (
 					status &&
 					(status.toLowerCase().includes('startad') ||
@@ -103,7 +128,15 @@ export async function scrape(cookie: string): Promise<ResourceGroup[]> {
 				) {
 					state = 'taken';
 				} else if (status && status.toLowerCase().includes('avslutades')) {
-					state = 'recently_used';
+					// Check if the machine finished recently (within 60 minutes)
+					if (isRecentlyFinished(status)) {
+						state = 'recently_used';
+					} else {
+						state = 'available';
+					}
+				} else if (machineName.toLowerCase().includes('ledig')) {
+					// If no specific status info and machine name says "ledig" (available)
+					state = 'available';
 				} else {
 					state = 'available';
 				}
