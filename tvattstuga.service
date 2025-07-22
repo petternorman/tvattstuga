@@ -1,12 +1,15 @@
 [Unit]
-Description=Tvätt App - Laundry Booking System
+Description=Tvätt App - Laundry Booking System (Frontend + API)
 After=network.target
 
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi/tvattstuga
-# Environment variables will be loaded from .env file by the Deno app
+WorkingDirectory=/home/pi/tvattstuga/current
+# Environment variables (.env) define BASE_URL, USERNAME, PASSWORD, PORT
+# This serves both the SvelteKit frontend (static files) and the API backend
+# Frontend: http://localhost:3000 (or custom PORT)
+# API: http://localhost:3000/api/tvatt
 ExecStart=/home/pi/.deno/bin/deno task serve
 Restart=always
 RestartSec=10

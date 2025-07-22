@@ -48,10 +48,18 @@ router.get('/api/tvatt', async (ctx) => {
 	}
 });
 
-// Serve static files from build
-router.get('/build/(.*)', async (ctx) => {
-	await send(ctx, ctx.request.url.pathname, {
-		root: `${Deno.cwd()}`
+// Serve static files from build directory
+router.get('/_app/(.*)', async (ctx) => {
+	const filePath = ctx.params[0];
+	await send(ctx, `_app/${filePath}`, {
+		root: `${Deno.cwd()}/build`
+	});
+});
+
+// Serve other static assets (favicon, etc.)
+router.get('/favicon.svg', async (ctx) => {
+	await send(ctx, 'favicon.svg', {
+		root: `${Deno.cwd()}/build`
 	});
 });
 
