@@ -117,6 +117,17 @@ export async function scrape(cookie: string): Promise<ResourceGroup[]> {
 
 			if (machineName.toLowerCase().includes('ej ledig')) {
 				state = 'not_bookable';
+			} else if (machineName.toLowerCase().includes('min bokning')) {
+				// Handle "Min bokning" cases - these are user's own bookings
+				if (
+					machineName.toLowerCase().includes('startad') ||
+					machineName.toLowerCase().includes('pågående')
+				) {
+					state = 'taken';
+				} else {
+					// Other "Min bokning" states (e.g., reserved but not started)
+					state = 'taken';
+				}
 			} else {
 				// First check status to see if machine has specific state information
 				if (
