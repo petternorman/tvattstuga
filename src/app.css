@@ -1,1 +1,42 @@
 @import 'tailwindcss';
+
+/* Base body styles */
+body {
+	background-color: white;
+	color: rgb(17 24 39);
+	transition:
+		background-color 0.2s,
+		color 0.2s;
+}
+
+.dark body {
+	background-color: rgb(17 24 39);
+	color: rgb(243 244 246);
+}
+
+/* Ensure smooth transitions for theme changes */
+* {
+	transition:
+		background-color 0.2s,
+		color 0.2s,
+		border-color 0.2s;
+}
+
+/* Custom scrollbar for dark mode */
+.dark *::-webkit-scrollbar {
+	background-color: rgb(31 41 55);
+}
+
+.dark *::-webkit-scrollbar-thumb {
+	background-color: rgb(75 85 99);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+	background-color: rgb(63, 63, 64);
+}
+
+.dark *::-webkit-scrollbar-track {
+	background-color: rgb(17 24 39);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));

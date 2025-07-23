@@ -1,9 +1,30 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// Prevent FOUC (Flash of Unstyled Content) by applying theme class immediately
+			try {
+				const theme = localStorage.getItem('theme-mode') || 'system';
+				const systemPrefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
+
+				let shouldBeDark = false;
+				if (theme === 'dark') {
+					shouldBeDark = true;
+				} else if (theme === 'system') {
+					shouldBeDark = systemPrefersDark;
+				}
+				// If theme === 'light', shouldBeDark stays false
+
+				if (shouldBeDark) {
+					document.documentElement.classList.add('dark');
+				}
+			} catch (e) {
+				// Ignore errors (e.g., localStorage not available)
+			}
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
