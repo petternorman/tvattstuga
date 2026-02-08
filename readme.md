@@ -49,7 +49,7 @@ It listens on `http://localhost:3001`.
 
 ### Web (apps/web)
 
-You can either set `PUBLIC_API_BASE_URL=http://localhost:3001` or leave it unset and use the Vite proxy.
+You can either set `VITE_API_BASE_URL=http://localhost:3001` or leave it unset and use the Vite proxy.
 
 Run the web dev server:
 

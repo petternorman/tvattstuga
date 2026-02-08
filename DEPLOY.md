@@ -25,12 +25,12 @@ http://localhost:5173,https://your-web.vercel.app
 - **Build Command**: `npm run build`
 - **Output Directory**: `build`
 - **Environment Variables**:
-  - `PUBLIC_API_BASE_URL` (the full URL of the API project)
+  - `VITE_API_BASE_URL` (the full URL of the API project)
 
 Example:
 
 ```
-PUBLIC_API_BASE_URL=https://your-api.vercel.app
+VITE_API_BASE_URL=https://your-api.vercel.app
 ```
 
 ## Notes
