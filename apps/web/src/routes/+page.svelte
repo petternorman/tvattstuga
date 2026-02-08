@@ -9,7 +9,7 @@
 	import NoDataState from './NoDataState.svelte';
 
 	const CREDENTIALS_KEY = 'tvattstuga.credentials';
-	const apiBase = (import.meta.env.PUBLIC_API_BASE_URL || '').replace(/\/$/, '');
+	const apiBase = (import.meta.env.PUBLIC_API_BASE_URL as string | undefined)?.replace(/\/$/, '');
 
 	let credentials = $state({ username: '', password: '' });
 	let hasCredentials = $state(false);
@@ -40,6 +40,10 @@
 
 	async function load(isInitialLoad = false) {
 		try {
+			if (!apiBase) {
+				throw new Error('PUBLIC_API_BASE_URL is missing in web build environment');
+			}
+
 			if (!hasCredentials) {
 				initialLoading = false;
 				updating = false;
