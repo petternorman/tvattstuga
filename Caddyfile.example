@@ -1,0 +1,40 @@
+# Example Caddyfile for serving tvattstuga
+# Replace 'yourdomain.com' with your actual domain
+
+# Option 1: Serve on subpath (e.g., yourdomain.com/tvattstuga)
+# Use this if you built with: ./build.sh /tvattstuga
+yourdomain.com {
+    # Serve your main site content (if any)
+    root * /var/www/html
+    file_server
+
+    # Handle the tvattstuga app on the /tvattstuga subpath
+    handle_path /tvattstuga* {
+        reverse_proxy localhost:3000
+    }
+}
+
+# Option 2: Serve on subdomain (e.g., tvattstuga.yourdomain.com)
+# Use this with default build: ./build.sh
+tvattstuga.yourdomain.com {
+    reverse_proxy localhost:3000
+}
+
+# Option 3: Serve on root domain (e.g., yourdomain.com)
+# Use this with default build: ./build.sh
+# yourdomain.com {
+#     reverse_proxy localhost:3000
+# }
+
+# For local testing only
+:80 {
+    # Test subpath locally
+    handle_path /tvattstuga* {
+        reverse_proxy localhost:3000
+    }
+    
+    # Test root path locally
+    handle / {
+        reverse_proxy localhost:3000
+    }
+}

@@ -1,10 +1,25 @@
 #!/bin/bash
 
 # Build script for Tvätt app deployment on Raspberry Pi
+# Usage: 
+#   ./build.sh                 # Build for root path (default)
+#   ./build.sh /tvattstuga     # Build for subpath serving
+# 
+# The app can be served:
+# - At root path (no BASE_PATH needed)
+# - On a subpath (set BASE_PATH=/your-path)
+# - On a subdomain (no BASE_PATH needed, just different domain)
 
 set -e  # Exit on any error
 
-echo "🔨 Building SvelteKit app..."
+SUBPATH=${1:-""}
+WEB_DIR="apps/web"
+
+if [ -n "$SUBPATH" ]; then
+    echo "🔨 Building SvelteKit app for subpath: $SUBPATH"
+else
+    echo "🔨 Building SvelteKit app for root path (works for root or subdomain)"
+fi
 
 # Check if npm is available
 if ! command -v npm &> /dev/null; then
@@ -20,7 +35,23 @@ fi
 
 # Build the SvelteKit app
 echo "🏗️  Building SvelteKit frontend..."
-npm run build
+
+if [ -n "$SUBPATH" ]; then
+    echo "🔧 Configuring for subpath: $SUBPATH"
+    # Temporarily update svelte.config.js with the base path
+    sed -i.bak "s|base: ''|base: '$SUBPATH'|g" "$WEB_DIR/svelte.config.js"
+    
+    # Build the project
+    npm -w "$WEB_DIR" run build
+    
+    # Restore the original config
+    mv "$WEB_DIR/svelte.config.js.bak" "$WEB_DIR/svelte.config.js"
+    
+    echo "✅ Build complete for subpath: $SUBPATH"
+    echo "⚠️  Remember to set BASE_PATH=$SUBPATH when running the server"
+else
+    npm -w "$WEB_DIR" run build
+fi
 
 echo "✅ SvelteKit build complete!"
 
@@ -33,6 +64,7 @@ BASE_URL=your_booking_system_url_here
 USERNAME=your_username_here
 PASSWORD=your_password_here
 PORT=3000
+# BASE_PATH=${SUBPATH:-"# Leave empty for root path or subdomain serving"}
 EOF
     echo "⚠️  Please edit .env file with your actual credentials before running!"
 fi
@@ -51,7 +83,7 @@ DEPLOY_DIR="deploy-$(date +%Y%m%d-%H%M%S)"
 echo "📦 Creating deployment package: $DEPLOY_DIR"
 
 mkdir -p "$DEPLOY_DIR"
-cp -r build "$DEPLOY_DIR/"  # Copy build directory itself, not just contents
+cp -r "$WEB_DIR/build" "$DEPLOY_DIR/"  # Copy build directory itself, not just contents
 cp -r server "$DEPLOY_DIR/"  # Copy server directory itself, not just contents
 cp deno.json "$DEPLOY_DIR/"
 cp .env "$DEPLOY_DIR/"
@@ -83,6 +115,64 @@ This package contains everything needed to run the Tvätt app on your Raspberry 
    \`\`\`bash
    deno task serve
    \`\`\`
+
+## Serving Options
+
+This app can be served in three different ways:
+
+### 1. Root Path (Default)
+- No configuration needed
+- App available at: \`http://yourdomain.com/\`
+- Leave \`BASE_PATH\` empty or unset in .env
+
+### 2. Subpath
+- Build with: \`./build.sh /tvattstuga\`
+- Set \`BASE_PATH=/tvattstuga\` in .env
+- App available at: \`http://yourdomain.com/tvattstuga/\`
+
+### 3. Subdomain
+- Use default build: \`./build.sh\`
+- Leave \`BASE_PATH\` empty in .env
+- App available at: \`http://tvattstuga.yourdomain.com/\`
+
+## Reverse Proxy Configuration
+
+**Caddy - Subpath:**
+\`\`\`
+yourdomain.com {
+    handle_path /tvattstuga* {
+        reverse_proxy localhost:3000
+    }
+}
+\`\`\`
+
+**Caddy - Subdomain:**
+\`\`\`
+tvattstuga.yourdomain.com {
+    reverse_proxy localhost:3000
+}
+\`\`\`
+
+**nginx - Subpath:**
+\`\`\`
+location /tvattstuga/ {
+    proxy_pass http://localhost:3000/tvattstuga/;
+    proxy_set_header Host \$host;
+    proxy_set_header X-Real-IP \$remote_addr;
+}
+\`\`\`
+
+**nginx - Subdomain:**
+\`\`\`
+server {
+    server_name tvattstuga.yourdomain.com;
+    location / {
+        proxy_pass http://localhost:3000/;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+\`\`\`
 
 ## System Service Setup
 
@@ -167,8 +257,14 @@ echo "✅ Deployment package created: $DEPLOY_DIR"
 echo ""
 echo "🚀 Next steps:"
 echo "1. Edit $DEPLOY_DIR/.env with your actual credentials"
-echo "2. Copy $DEPLOY_DIR/ to your Raspberry Pi"
-echo "3. Follow instructions in $DEPLOY_DIR/DEPLOY.md"
+if [ -n "$SUBPATH" ]; then
+    echo "2. Make sure BASE_PATH=$SUBPATH is set in your .env file"
+    echo "3. Configure your reverse proxy to serve on subpath: $SUBPATH"
+    echo "4. Copy $DEPLOY_DIR/ to your Raspberry Pi"
+else
+    echo "2. Copy $DEPLOY_DIR/ to your Raspberry Pi"
+fi
+echo "5. Follow instructions in $DEPLOY_DIR/DEPLOY.md"
 echo ""
 echo "📋 Files ready for deployment:"
 ls -la "$DEPLOY_DIR/"

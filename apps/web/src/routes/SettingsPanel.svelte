@@ -9,7 +9,9 @@
 		updating,
 		updateTimer,
 		lastUpdateTime,
-		event
+		event,
+		hasCredentials,
+		savedUsername
 	} = $props();
 
 	let localInterval = $state(updateInterval);
@@ -48,6 +50,37 @@
 		<h3 class="mb-3 text-sm font-semibold text-gray-900 sm:text-base dark:text-gray-100">
 			Inställningar
 		</h3>
+
+		<!-- Login Info -->
+		<div class="mb-4">
+			<div class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Inloggning</div>
+			{#if hasCredentials}
+				<div class="mb-2 text-xs text-gray-600 dark:text-gray-400">
+					Sparad användare: {savedUsername}
+				</div>
+				<div class="flex gap-2">
+					<button
+						onclick={() => event('openLogin')}
+						class="flex-1 rounded-md bg-blue-500 px-3 py-2 text-xs text-white transition-colors hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+					>
+						Byt inloggning
+					</button>
+					<button
+						onclick={() => event('clearCredentials')}
+						class="flex-1 rounded-md bg-gray-200 px-3 py-2 text-xs text-gray-800 transition-colors hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100 dark:hover:bg-gray-600"
+					>
+						Logga ut
+					</button>
+				</div>
+			{:else}
+				<button
+					onclick={() => event('openLogin')}
+					class="w-full rounded-md bg-blue-500 px-3 py-2 text-xs text-white transition-colors hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+				>
+					Lägg till inloggning
+				</button>
+			{/if}
+		</div>
 
 		<!-- Theme Selector -->
 		<div class="mb-4">

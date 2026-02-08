@@ -7,6 +7,9 @@ await load({ export: true });
 const USERNAME = Deno.env.get('USERNAME') || '';
 const PASSWORD = Deno.env.get('PASSWORD') || '';
 
+// Base path for subpath serving (e.g., '/tvattstuga')
+const BASE_PATH = Deno.env.get('BASE_PATH') || '';
+
 // Simple cache to prevent excessive scraping
 let cachedData: object | null = null;
 let lastScrapeTime = 0;
@@ -43,7 +46,10 @@ async function getValidCookie(): Promise<string> {
 }
 
 const router = new Router();
-router.get('/api/tvatt', async (ctx) => {
+
+// API routes - works for both root path and subpath
+const apiPath = BASE_PATH ? `${BASE_PATH}/api/tvatt` : '/api/tvatt';
+router.get(apiPath, async (ctx) => {
 	try {
 		const now = Date.now();
 
@@ -92,7 +98,8 @@ router.get('/api/tvatt', async (ctx) => {
 });
 
 // Serve static files from build directory
-router.get('/_app/(.*)', async (ctx) => {
+const appPath = BASE_PATH ? `${BASE_PATH}/_app/(.*)` : '/_app/(.*)';
+router.get(appPath, async (ctx) => {
 	const filePath = ctx.params[0];
 	await send(ctx, `_app/${filePath}`, {
 		root: `${Deno.cwd()}/build`
@@ -100,14 +107,17 @@ router.get('/_app/(.*)', async (ctx) => {
 });
 
 // Serve other static assets (favicon, etc.)
-router.get('/favicon.svg', async (ctx) => {
+const faviconPath = BASE_PATH ? `${BASE_PATH}/favicon.svg` : '/favicon.svg';
+router.get(faviconPath, async (ctx) => {
 	await send(ctx, 'favicon.svg', {
 		root: `${Deno.cwd()}/build`
 	});
 });
 
 // Serve index.html for all other routes (SPA routing)
-router.get('/(.*)', async (ctx) => {
+// This handles both the base path root and any sub-routes
+const spaPath = BASE_PATH ? `${BASE_PATH}(.*)` : '/(.*)';
+router.get(spaPath, async (ctx) => {
 	await send(ctx, 'index.html', {
 		root: `${Deno.cwd()}/build`
 	});

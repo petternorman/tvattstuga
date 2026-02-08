@@ -1,203 +1,85 @@
-# Tvätt App - SvelteKit + Deno
+# Tvätt App - SvelteKit + Vercel API
 
-A modern laundry booking system built with SvelteKit and Deno, designed to run efficiently on a Raspberry Pi.
+A small, private laundry status app for a neighborhood. The web UI is a static SvelteKit build, and the API logs in to the ASP.NET backend per request using credentials supplied by the user’s device.
 
 ## Architecture
 
-- **Frontend**: SvelteKit with Svelte 5 and TailwindCSS (built as static files)
-- **Backend**: Deno server with Oak framework
-- **Deployment**: Single Deno process serving both frontend and API
+- **Web**: SvelteKit (static build) in `apps/web`
+- **API**: Vercel serverless functions (Node) in `apps/api`
+- **Legacy**: Deno server + Raspberry Pi deployment in `server/` and `build.sh` (kept for reference)
 
 ## Project Structure
 
 ```
-tvattstuga/
-├── src/                    # SvelteKit frontend source
-│   ├── routes/            # App pages and components
-│   └── lib/               # Shared utilities
-├── server/                # Deno backend
-│   ├── server.ts         # Main server file
-│   ├── login.ts          # Authentication logic
-│   └── scrape.ts         # Data scraping logic
-├── build/                 # Generated static files (after build)
-├── static/               # Static assets
-├── build.sh              # Deployment build script
-├── deno.json             # Deno configuration
-├── package.json          # Frontend dependencies
-└── tvattstuga.service    # Systemd service file
+apps/
+  web/           # SvelteKit frontend
+  api/           # Vercel serverless API (Node)
+server/          # Legacy Deno server (optional)
 ```
 
-## Development
+## Local Development
 
 ### Prerequisites
 
-- Node.js and npm (for building the frontend)
-- Deno (for running the server)
+- Node.js 18+
+- npm
 
-### Local Development
-
-1. **Set up environment variables:**
-
-   ```bash
-   cp .env.example .env
-   # Edit .env with your actual credentials
-   ```
-
-   Required environment variables:
-
-   ```
-   BASE_URL=your_booking_system_url
-   USERNAME=your_username
-   PASSWORD=your_password
-   PORT=3000
-   ```
-
-2. **Option A - Run both servers at once (Recommended):**
-
-   ```bash
-   npm install
-   npm run dev:full
-   ```
-
-   This starts:
-   - SvelteKit dev server on `http://localhost:5173` (with hot reload)
-   - Deno API server on `http://localhost:3001`
-   - Automatic proxy from frontend to API
-
-3. **Option B - Run servers separately:**
-
-   Terminal 1 - Frontend:
-
-   ```bash
-   npm run dev:client
-   ```
-
-   Terminal 2 - API Server:
-
-   ```bash
-   npm run dev:server
-   ```
-
-4. **Access the app:**
-   - Frontend: `http://localhost:5173`
-   - API directly: `http://localhost:3001/api/tvatt`
-
-## Production Deployment (Raspberry Pi)
-
-### 1. Prepare the Build
-
-Run the build script:
+### Install
 
 ```bash
-./build.sh
+npm install
 ```
 
-### 2. Copy to Raspberry Pi
+### API (apps/api)
 
-Transfer the deployment package to your Raspberry Pi:
+Set env vars (example in `apps/api/.env.example`):
+
+```
+BASE_URL=https://your-booking-system.com
+ALLOWED_ORIGINS=http://localhost:5173
+```
+
+Run the API dev server:
 
 ```bash
-# After running ./build.sh, copy the generated deployment package
-scp -r deploy-YYYYMMDD-HHMMSS/ pi@your-pi-ip:/home/pi/tvattstuga/
+npm run dev:api
 ```
 
-### 3. Install Deno on Raspberry Pi
+It listens on `http://localhost:3001`.
+
+### Web (apps/web)
+
+You can either set `PUBLIC_API_BASE_URL=http://localhost:3001` or leave it unset and use the Vite proxy.
+
+Run the web dev server:
 
 ```bash
-curl -fsSL https://deno.land/install.sh | sh
-echo 'export PATH="$HOME/.deno/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
+npm run dev:web
 ```
 
-### 4. Set up Environment Variables
+Open `http://localhost:5173`.
 
-Create a `.env` file with your credentials:
+## API Endpoint
 
-```bash
-# In your deployment directory
-nano .env
+`POST /api/tvatt`
+
+Body:
+
+```json
+{ "username": "...", "password": "..." }
 ```
 
-Required variables:
+The app stores credentials locally in the browser (localStorage) to avoid repeated logins.
 
-```
-BASE_URL=your_booking_system_url
-USERNAME=your_username
-PASSWORD=your_password
-PORT=3000
-```
+## Deployment (Vercel)
 
-### 5. Set up as System Service
+See `DEPLOY.md` for the step-by-step Vercel setup.
 
-Copy the service file:
+## Legacy Raspberry Pi Deployment
 
-```bash
-sudo cp tvattstuga.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable tvattstuga
-sudo systemctl start tvattstuga
-```
+The previous single-process Deno deployment is still in the repo for reference:
 
-Check status:
+- `server/` (Deno Oak server)
+- `build.sh` (Pi packaging script)
 
-```bash
-sudo systemctl status tvattstuga
-```
-
-## API Endpoints
-
-- `GET /api/tvatt` - Fetches laundry machine data
-- `GET /*` - Serves the SvelteKit app (SPA routing)
-
-## Migration Benefits
-
-✅ **Modern Stack**: SvelteKit + Svelte 5 with better reactivity  
-✅ **Deno Runtime**: Better security, built-in TypeScript, modern APIs
-✅ **Single Process**: One Deno server handles both frontend and API
-✅ **Easy Deployment**: No Node.js needed on the Pi, just Deno
-✅ **Better Performance**: Static files served efficiently  
-✅ **Type Safety**: Full TypeScript support throughout
-
-## Troubleshooting
-
-### Build Issues
-
-- Make sure `@sveltejs/adapter-static` is installed: `npm install -D @sveltejs/adapter-static`
-- Clear cache: `rm -rf node_modules package-lock.json && npm install`
-
-### Server Issues
-
-- Check logs: `sudo journalctl -u tvattstuga -f`
-- Verify environment variables are set
-- Ensure port 3000 is not already in use
-
-### Permissions
-
-- Make sure the pi user has read access to the app directory
-- Check firewall settings if accessing from other devices
-
-## Available Scripts
-
-- `npm run dev:client` - Start SvelteKit dev server
-- `npm run dev:server` - Start Deno API server
-- `npm run dev:full` - Start both servers concurrently
-- `npm run build` - Build SvelteKit for production
-- `npm run preview` - Preview production build
-- `npm run check` - Type checking
-- `npm run lint` - Run ESLint and Prettier
-- `npm run format` - Format code with Prettier
-
-## Deno Tasks
-
-- `deno task serve` - Run production server
-- `deno task dev` - Run development server (API only)
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
+These are not used for the Vercel split deployment.

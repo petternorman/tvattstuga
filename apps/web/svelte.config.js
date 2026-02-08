@@ -16,7 +16,10 @@ const config = {
 			fallback: 'index.html',
 			precompress: false,
 			strict: true
-		})
+		}),
+		paths: {
+			base: '' // Set this to your subpath when deploying, e.g., '/tvattstuga'
+		}
 	}
 };
 
