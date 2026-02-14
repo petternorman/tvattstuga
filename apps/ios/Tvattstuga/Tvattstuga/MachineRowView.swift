@@ -3,6 +3,9 @@ import SwiftUI
 struct MachineRowView: View {
     let entry: GroupMachine
     var showGroupName = false
+    var showsTrackingControl = false
+    var isTrackingEnabled = false
+    var onTrackingToggle: (() -> Void)?
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -34,6 +37,21 @@ struct MachineRowView: View {
                     .foregroundStyle(state.tintColor)
                     .background(state.tintColor.opacity(0.15))
                     .clipShape(Capsule())
+
+                if showsTrackingControl {
+                    Button {
+                        onTrackingToggle?()
+                    } label: {
+                        Image(systemName: isTrackingEnabled ? "timer.circle.fill" : "timer.circle")
+                            .foregroundStyle(isTrackingEnabled ? Color.blue : Color.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(
+                        isTrackingEnabled
+                            ? "Stop tracking \(entry.machine.name)"
+                            : "Track \(entry.machine.name) with live countdown and ready notification"
+                    )
+                }
             }
             .padding(.vertical, 4)
         }

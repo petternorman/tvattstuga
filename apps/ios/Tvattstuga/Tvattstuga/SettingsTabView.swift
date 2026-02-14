@@ -1,7 +1,9 @@
 import SwiftUI
+import UIKit
 
 struct SettingsTabView: View {
     @EnvironmentObject private var model: AppModel
+    @Environment(\.openURL) private var openURL
     @State private var showClearCredentialsAlert = false
 
     var body: some View {
@@ -75,6 +77,53 @@ struct SettingsTabView: View {
                         Button("Show all groups") {
                             model.clearPreferredStatusGroups()
                         }
+                    }
+                }
+
+                Section("Machine Tracking") {
+                    LabeledContent("Notifications") {
+                        Text(model.notificationPermissionDescription)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    LabeledContent("Live Activities") {
+                        Text(model.liveActivitySupportDescription)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    LabeledContent("Tracking") {
+                        Text(model.trackedMachineAlertLabel)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Button("Allow notifications") {
+                        Task {
+                            await model.requestNotificationPermission()
+                        }
+                    }
+
+                    if model.trackedMachineAlertID != nil {
+                        Button("Stop tracking", role: .destructive) {
+                            Task {
+                                await model.stopTrackedMachineAlert(clearMessage: true)
+                            }
+                        }
+                    }
+
+                    Button("Open iOS Settings") {
+                        if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
+                            openURL(settingsURL)
+                        }
+                    }
+
+                    Text("In Status -> Active Cycles, tap the timer icon once to enable both live countdown and ready notification.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+
+                    if let infoMessage = model.notificationInfoMessage {
+                        Text(infoMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                 }
 

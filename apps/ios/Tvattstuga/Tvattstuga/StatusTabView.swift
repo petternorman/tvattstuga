@@ -44,7 +44,17 @@ struct StatusTabView: View {
                         if !model.activeEntries.isEmpty {
                             Section("Active Cycles") {
                                 ForEach(model.activeEntries) { entry in
-                                    MachineRowView(entry: entry, showGroupName: true)
+                                    MachineRowView(
+                                        entry: entry,
+                                        showGroupName: true,
+                                        showsTrackingControl: model.canTrackMachineAlert(for: entry),
+                                        isTrackingEnabled: model.isMachineAlertEnabled(for: entry),
+                                        onTrackingToggle: {
+                                            Task {
+                                                await model.toggleMachineAlert(for: entry)
+                                            }
+                                        }
+                                    )
                                 }
                             }
                         }

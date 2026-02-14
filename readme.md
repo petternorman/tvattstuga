@@ -71,6 +71,7 @@ Open `http://localhost:5173`.
   - `apps/ios/Tvattstuga/Config/Release.local.xcconfig`
 - Copy from the committed examples in the same folder (`*.local.xcconfig.example`) and edit locally.
 - User-specific Xcode state (`xcuserdata`, `*.xcuserstate`) is ignored and should not be committed.
+- For Dynamic Island / Lock Screen countdown setup, follow `apps/ios/Tvattstuga/LIVE_ACTIVITY_SETUP.md`.
 
 ## API Endpoint
 

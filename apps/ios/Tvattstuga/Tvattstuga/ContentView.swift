@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = AppModel()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
         TabView {
@@ -35,6 +36,14 @@ struct ContentView: View {
             LoginSheetView()
                 .environmentObject(model)
                 .interactiveDismissDisabled(model.signedInUsername == nil)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else {
+                return
+            }
+            Task {
+                await model.handleAppBecameActive()
+            }
         }
     }
 }
