@@ -1,0 +1,4 @@
+// Copy to Release.local.xcconfig (ignored by git)
+// Use this only for local testing; release CI should use Release.xcconfig.
+API_BASE_URL = https:/$()/tvattstuga-api.vercel.app
+INFOPLIST_KEY_APIBaseURL = $(API_BASE_URL)

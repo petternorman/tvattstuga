@@ -1,0 +1,6 @@
+// Release.xcconfig
+API_BASE_URL = https:/$()/tvattstuga-api.vercel.app
+INFOPLIST_KEY_APIBaseURL = $(API_BASE_URL)
+
+// Optional local overrides (ignored by git): Release.local.xcconfig
+#include? "Release.local.xcconfig"

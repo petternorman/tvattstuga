@@ -1,0 +1,4 @@
+// Copy to Staging.local.xcconfig (ignored by git)
+// Use this for machine-local overrides.
+API_BASE_URL = https:/$()/tvattstuga-api.vercel.app
+INFOPLIST_KEY_APIBaseURL = $(API_BASE_URL)

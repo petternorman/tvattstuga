@@ -59,6 +59,19 @@ npm run dev:web
 
 Open `http://localhost:5173`.
 
+### iOS (apps/ios)
+
+- Shared config is committed in:
+  - `apps/ios/Tvattstuga/Config/Debug.xcconfig`
+  - `apps/ios/Tvattstuga/Config/Staging.xcconfig`
+  - `apps/ios/Tvattstuga/Config/Release.xcconfig`
+- Local machine overrides should be placed in ignored files:
+  - `apps/ios/Tvattstuga/Config/Debug.local.xcconfig`
+  - `apps/ios/Tvattstuga/Config/Staging.local.xcconfig`
+  - `apps/ios/Tvattstuga/Config/Release.local.xcconfig`
+- Copy from the committed examples in the same folder (`*.local.xcconfig.example`) and edit locally.
+- User-specific Xcode state (`xcuserdata`, `*.xcuserstate`) is ignored and should not be committed.
+
 ## API Endpoint
 
 `POST /api/tvatt`

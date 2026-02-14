@@ -1,0 +1,4 @@
+// Copy to Debug.local.xcconfig (ignored by git)
+// Use this for machine-local overrides.
+API_BASE_URL = http:/$()/localhost:3001
+INFOPLIST_KEY_APIBaseURL = $(API_BASE_URL)
