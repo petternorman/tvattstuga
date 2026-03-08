@@ -85,6 +85,11 @@ export function getBorderColor(state: MachineState | string): string {
   }
 }
 
+// Create a unique key for a machine within a group
+export function getMachineKey(groupName: string, machineName: string): string {
+	return `${groupName}::${machineName}`;
+}
+
 // Check if a machine was recently used (completed within the last hour)
 export function wasRecentlyUsed(
   status: string | null | undefined,
