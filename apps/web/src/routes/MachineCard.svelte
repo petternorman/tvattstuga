@@ -1,10 +1,11 @@
 <script lang="ts">
 	import {
 		parseCompletionTime,
+		canTrackMachine,
+		getEffectiveState,
 		getStateLabel,
 		getStateColor,
-		getBorderColor,
-		wasRecentlyUsed
+		getBorderColor
 	} from './timerUtils.js';
 
 	let {
@@ -19,11 +20,7 @@
 		onToggleTrack?: () => void;
 	} = $props();
 
-	const effectiveState = $derived(
-		machine.state === 'available' && wasRecentlyUsed(machine.status, currentTime)
-			? 'recently_used'
-			: machine.state
-	);
+	const effectiveState = $derived(getEffectiveState(machine.state, machine.status, currentTime));
 </script>
 
 <div
@@ -36,14 +33,14 @@
 			>{machine.name}</span
 		>
 		<div class="flex flex-shrink-0 items-center gap-1.5">
-			{#if effectiveState === 'taken' && onToggleTrack}
+			{#if canTrackMachine(machine.state, machine.status, currentTime) && onToggleTrack}
 				<button
 					onclick={onToggleTrack}
 					class="rounded-full p-1 transition-colors {tracked
 						? 'text-yellow-500 hover:text-yellow-600 dark:text-yellow-400 dark:hover:text-yellow-300'
 						: 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'}"
-					title={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen är klar'}
-					aria-label={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen är klar'}
+					title={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen blir ledig'}
+					aria-label={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen blir ledig'}
 				>
 					{#if tracked}
 						<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

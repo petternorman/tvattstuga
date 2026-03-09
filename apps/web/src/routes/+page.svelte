@@ -9,7 +9,7 @@
 	import NoDataState from './NoDataState.svelte';
 
 	import { SvelteSet } from 'svelte/reactivity';
-	import { getMachineKey, parseCompletionTime } from './timerUtils';
+	import { getEffectiveState, getMachineKey, parseCompletionTime } from './timerUtils';
 
 	const CREDENTIALS_KEY = 'tvattstuga.credentials';
 	const TRACKED_KEY = 'tvattstuga.tracked';
@@ -226,8 +226,8 @@
 
 	function sendNotification(machineName: string, groupName: string) {
 		if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-		new Notification('Maskinen är klar!', {
-			body: `${machineName} i ${groupName} är klar`,
+		new Notification('Maskinen är ledig!', {
+			body: `${machineName} i ${groupName} är ledig`,
 			tag: getMachineKey(groupName, machineName)
 		});
 	}
@@ -249,8 +249,10 @@
 				continue;
 			}
 
-			if (machine.state !== 'taken') {
-				// The machine is no longer occupied
+			const effectiveState = getEffectiveState(machine.state, machine.status, now);
+
+			if (effectiveState === 'available') {
+				// The machine is fully available again
 				if (!notifiedMachines.has(key)) {
 					sendNotification(machineName, groupName);
 					notifiedMachines.add(key);
@@ -261,7 +263,7 @@
 
 			// Check whether the completion time has passed
 			const completionTime = parseCompletionTime(machine.status);
-			if (completionTime && completionTime.getTime() <= now) {
+			if (effectiveState === 'taken' && completionTime && completionTime.getTime() <= now) {
 				if (!notifiedMachines.has(key)) {
 					sendNotification(machineName, groupName);
 					notifiedMachines.add(key);
