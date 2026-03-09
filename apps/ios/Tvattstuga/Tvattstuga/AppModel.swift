@@ -169,14 +169,20 @@ final class AppModel: ObservableObject {
         machineEntries
             .filter {
                 let state = $0.machine.displayState()
-                return state == .available || state == .recentlyUsed
+                return state == .available || state == .recentlyUsed || $0.machine.isBookedByCurrentUser()
             }
             .sorted { $0.machine.name.localizedCaseInsensitiveCompare($1.machine.name) == .orderedAscending }
     }
 
     var activeEntries: [GroupMachine] {
         machineEntries
-            .filter { $0.machine.completionDate() != nil || $0.machine.displayState() == .taken }
+            .filter { entry in
+                let machine = entry.machine
+                if machine.isBookedByCurrentUser() {
+                    return false
+                }
+                return machine.completionDate() != nil || machine.displayState() == .taken
+            }
             .sorted { lhs, rhs in
                 let leftDate = lhs.machine.completionDate() ?? .distantFuture
                 let rightDate = rhs.machine.completionDate() ?? .distantFuture

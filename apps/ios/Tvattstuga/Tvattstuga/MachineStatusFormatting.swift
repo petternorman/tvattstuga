@@ -40,6 +40,16 @@ enum MachineDisplayState: String {
 }
 
 extension Machine {
+    func isBookedByCurrentUser() -> Bool {
+        let normalizedName = normalizeForMatching(name)
+        let normalizedStatus = normalizeForMatching(status)
+        return normalizedName.contains("min bokning")
+            || normalizedStatus.contains("min bokning")
+            || normalizedStatus.contains("bokad av dig")
+            || normalizedStatus.contains("booked by you")
+            || normalizedStatus.contains("your booking")
+    }
+
     func displayState(referenceDate: Date = .now) -> MachineDisplayState {
         let mapped = MachineDisplayState(rawValue: state) ?? .unknown
         if mapped == .available, wasRecentlyUsed(referenceDate: referenceDate) {
@@ -92,7 +102,7 @@ extension ResourceGroup {
     func availableCount(referenceDate: Date = .now) -> Int {
         machines.filter {
             let state = $0.displayState(referenceDate: referenceDate)
-            return state == .available || state == .recentlyUsed
+            return state == .available || state == .recentlyUsed || $0.isBookedByCurrentUser()
         }.count
     }
 }
@@ -145,4 +155,10 @@ private func formatDuration(_ seconds: Int) -> String {
     }
 
     return "\(minutes)m \(remainingSeconds)s"
+}
+
+private func normalizeForMatching(_ value: String) -> String {
+    value
+        .folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+        .trimmingCharacters(in: .whitespacesAndNewlines)
 }

@@ -34,7 +34,7 @@ struct StatusTabView: View {
                         }
 
                         if !model.availableEntries.isEmpty {
-                            Section("Available Now") {
+                            Section("Overview") {
                                 ForEach(model.availableEntries) { entry in
                                     MachineRowView(entry: entry, showGroupName: true)
                                 }
@@ -94,7 +94,7 @@ struct StatusTabView: View {
     }
 
     private var summarySection: some View {
-        Section("Overview") {
+        Section("Summary") {
             LabeledContent("Available") {
                 Text("\(model.summaryAvailableCount)")
             }
