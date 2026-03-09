@@ -34,7 +34,7 @@
 	let currentTime = $state(Date.now()); // For countdown timers
 	let hasStarted = $state(false);
 	let trackedMachines = new SvelteSet<string>();
-	// Set av maskin-nycklar som redan fått notifikation (undvika dubbletter)
+	// Set of machine keys that have already triggered a notification (avoid duplicates)
 	let notifiedMachines = new SvelteSet<string>();
 
 	const intervalOptions = [
@@ -210,7 +210,7 @@
 			trackedMachines.delete(key);
 			notifiedMachines.delete(key);
 		} else {
-			// Begär notifikationstillstånd vid första bevakning
+			// Request notification permission when tracking a machine for the first time
 			if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
 				await Notification.requestPermission();
 			}
@@ -244,13 +244,13 @@
 			const machine = group?.machines.find((m: any) => m.name === machineName);
 
 			if (!machine) {
-				// Maskinen finns inte längre i datan
+				// The machine no longer exists in the data
 				keysToRemove.push(key);
 				continue;
 			}
 
 			if (machine.state !== 'taken') {
-				// Maskinen är inte längre upptagen
+				// The machine is no longer occupied
 				if (!notifiedMachines.has(key)) {
 					sendNotification(machineName, groupName);
 					notifiedMachines.add(key);
@@ -259,7 +259,7 @@
 				continue;
 			}
 
-			// Kontrollera om klar-tiden har passerat
+			// Check whether the completion time has passed
 			const completionTime = parseCompletionTime(machine.status);
 			if (completionTime && completionTime.getTime() <= now) {
 				if (!notifiedMachines.has(key)) {
@@ -310,7 +310,7 @@
 	});
 
 	onMount(() => {
-		// Ladda bevakade maskiner
+		// Load tracked machines
 		const savedTracked = localStorage.getItem(TRACKED_KEY);
 		if (savedTracked) {
 			try {
