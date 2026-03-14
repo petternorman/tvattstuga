@@ -1,8 +1,22 @@
 <script lang="ts">
 	import MachineCard from './MachineCard.svelte';
-	import { wasRecentlyUsed } from './timerUtils';
+	import { wasRecentlyUsed, getMachineKey } from './timerUtils';
 
-	let { group, expanded, currentTime, toggle } = $props();
+	let {
+		group,
+		expanded,
+		currentTime,
+		toggle,
+		trackedMachines = new Set(),
+		onToggleTrack
+	}: {
+		group: any;
+		expanded: boolean;
+		currentTime: number;
+		toggle: () => void;
+		trackedMachines?: Set<string>;
+		onToggleTrack?: (groupName: string, machineName: string) => void;
+	} = $props();
 
 	const availableCount = $derived(
 		group.machines.filter((m: any) => m.state === 'available').length
@@ -65,7 +79,14 @@
 
 			<div class="grid grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2">
 				{#each group.machines as machine}
-					<MachineCard {machine} {currentTime} />
+					<MachineCard
+						{machine}
+						{currentTime}
+						tracked={trackedMachines.has(getMachineKey(group.name, machine.name))}
+						onToggleTrack={onToggleTrack
+							? () => onToggleTrack(group.name, machine.name)
+							: undefined}
+					/>
 				{/each}
 			</div>
 		</div>

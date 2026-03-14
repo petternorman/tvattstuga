@@ -16,6 +16,7 @@ server/  — Legacy Deno server (deprecated, do not modify)
 ```
 
 ### Web (`apps/web`)
+
 - **SvelteKit 2** with **Svelte 5** runes (`$state`, `$derived`, `$effect`)
 - **Tailwind CSS v4** for styling
 - **Static adapter** — builds to `apps/web/build/`
@@ -23,6 +24,7 @@ server/  — Legacy Deno server (deprecated, do not modify)
 - Component pattern: small, focused `.svelte` files in routes directory
 
 ### API (`apps/api`)
+
 - Single endpoint: `api/tvatt.ts` (Vercel serverless function)
 - `src/login.ts` — ASP.NET form authentication with cookie caching (10-min TTL)
 - `src/scrape.ts` — HTML parsing with cheerio
@@ -57,7 +59,7 @@ npm -w apps/web run check
 - **Print width**: 100
 - **Prettier** with `prettier-plugin-svelte` and `prettier-plugin-tailwindcss`
 - **ESLint**: typescript-eslint + svelte plugin
-- **Swedish** language for all UI strings, comments, and error messages
+- **Swedish** language for all UI strings and error messages
 - **No test framework** configured — validate with lint, type checking, and manual testing
 
 ## Key Patterns
@@ -72,9 +74,11 @@ npm -w apps/web run check
 ## Environment Variables
 
 ### Web (`apps/web/.env`)
+
 - `VITE_API_BASE_URL` — API base URL (e.g., `http://localhost:3001` for dev)
 
 ### API (`apps/api/.env`)
+
 - `BASE_URL` — Target ASP.NET booking system URL
 - `ALLOWED_ORIGINS` — Comma-separated CORS origins
 

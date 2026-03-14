@@ -8,7 +8,11 @@
 	import MachineGroup from './MachineGroup.svelte';
 	import NoDataState from './NoDataState.svelte';
 
+	import { SvelteSet } from 'svelte/reactivity';
+	import { getEffectiveState, getMachineKey, parseCompletionTime } from './timerUtils';
+
 	const CREDENTIALS_KEY = 'tvattstuga.credentials';
+	const TRACKED_KEY = 'tvattstuga.tracked';
 	const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '');
 
 	let credentials = $state({ username: '', password: '' });
@@ -29,6 +33,9 @@
 	let updateTimer = $state(0);
 	let currentTime = $state(Date.now()); // For countdown timers
 	let hasStarted = $state(false);
+	let trackedMachines = new SvelteSet<string>();
+	// Set of machine keys that have already triggered a notification (avoid duplicates)
+	let notifiedMachines = new SvelteSet<string>();
 
 	const intervalOptions = [
 		{ value: 0, label: 'Av' },
@@ -197,6 +204,82 @@
 		expandedGroups = groups; // Trigger reactivity
 	}
 
+	async function toggleTrackMachine(groupName: string, machineName: string) {
+		const key = getMachineKey(groupName, machineName);
+		if (trackedMachines.has(key)) {
+			trackedMachines.delete(key);
+			notifiedMachines.delete(key);
+		} else {
+			// Request notification permission when tracking a machine for the first time
+			if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+				await Notification.requestPermission();
+			}
+			trackedMachines.add(key);
+		}
+
+		saveTrackedMachines(trackedMachines);
+	}
+
+	function saveTrackedMachines(machines: SvelteSet<string>) {
+		localStorage.setItem(TRACKED_KEY, JSON.stringify([...machines]));
+	}
+
+	function sendNotification(machineName: string, groupName: string) {
+		if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+		new Notification('Maskinen är ledig!', {
+			body: `${machineName} i ${groupName} är ledig`,
+			tag: getMachineKey(groupName, machineName)
+		});
+	}
+
+	function checkTrackedMachines() {
+		if (trackedMachines.size === 0 || data.length === 0) return;
+
+		const keysToRemove: string[] = [];
+		const now = Date.now();
+
+		for (const key of trackedMachines) {
+			const [groupName, machineName] = key.split('::');
+			const group = data.find((g: any) => g.name === groupName);
+			const machine = group?.machines.find((m: any) => m.name === machineName);
+
+			if (!machine) {
+				// The machine no longer exists in the data
+				keysToRemove.push(key);
+				continue;
+			}
+
+			const effectiveState = getEffectiveState(machine.state, machine.status, now);
+
+			if (effectiveState === 'available') {
+				// The machine is fully available again
+				if (!notifiedMachines.has(key)) {
+					sendNotification(machineName, groupName);
+					notifiedMachines.add(key);
+				}
+				keysToRemove.push(key);
+				continue;
+			}
+
+			// Check whether the completion time has passed
+			const completionTime = parseCompletionTime(machine.status);
+			if (effectiveState === 'taken' && completionTime && completionTime.getTime() <= now) {
+				if (!notifiedMachines.has(key)) {
+					sendNotification(machineName, groupName);
+					notifiedMachines.add(key);
+				}
+				keysToRemove.push(key);
+			}
+		}
+
+		if (keysToRemove.length > 0) {
+			for (const key of keysToRemove) {
+				trackedMachines.delete(key);
+			}
+			saveTrackedMachines(trackedMachines);
+		}
+	}
+
 	$effect(() => {
 		// Timer for showing countdown
 		const timer = setInterval(() => {
@@ -211,9 +294,10 @@
 	});
 
 	$effect(() => {
-		// Timer for updating countdown timers
+		// Timer for updating countdown timers and checking notifications
 		const timer = setInterval(() => {
 			currentTime = Date.now();
+			checkTrackedMachines();
 		}, 1000);
 		return () => clearInterval(timer);
 	});
@@ -228,6 +312,19 @@
 	});
 
 	onMount(() => {
+		// Load tracked machines
+		const savedTracked = localStorage.getItem(TRACKED_KEY);
+		if (savedTracked) {
+			try {
+				const parsed = JSON.parse(savedTracked);
+				if (Array.isArray(parsed)) {
+					for (const key of parsed) trackedMachines.add(key);
+				}
+			} catch {
+				localStorage.removeItem(TRACKED_KEY);
+			}
+		}
+
 		const saved = localStorage.getItem(CREDENTIALS_KEY);
 		if (saved) {
 			try {
@@ -300,6 +397,8 @@
 					expanded={expandedGroups.has(group.name)}
 					{currentTime}
 					toggle={() => toggleGroup(group.name)}
+					{trackedMachines}
+					onToggleTrack={toggleTrackMachine}
 				/>
 			{/each}
 		</div>

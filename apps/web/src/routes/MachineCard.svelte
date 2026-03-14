@@ -1,21 +1,26 @@
-<script>
+<script lang="ts">
 	import {
 		parseCompletionTime,
+		canTrackMachine,
+		getEffectiveState,
 		getStateLabel,
 		getStateColor,
-		getBorderColor,
-		wasRecentlyUsed
+		getBorderColor
 	} from './timerUtils.js';
 
-	export let machine;
-	export let currentTime;
+	let {
+		machine,
+		currentTime,
+		tracked = false,
+		onToggleTrack
+	}: {
+		machine: any;
+		currentTime: number;
+		tracked?: boolean;
+		onToggleTrack?: () => void;
+	} = $props();
 
-	// Declare effectiveState and determine the effective state considering recently used
-	let effectiveState;
-	$: effectiveState =
-		machine.state === 'available' && wasRecentlyUsed(machine.status, currentTime)
-			? 'recently_used'
-			: machine.state;
+	const effectiveState = $derived(getEffectiveState(machine.state, machine.status, currentTime));
 </script>
 
 <div
@@ -27,13 +32,48 @@
 		<span class="text-sm font-medium break-words text-gray-900 sm:text-base dark:text-gray-100"
 			>{machine.name}</span
 		>
-		<span
-			class="rounded-full px-2 py-1 text-xs text-white {getStateColor(
-				effectiveState
-			)} flex-shrink-0"
-		>
-			{getStateLabel(effectiveState)}
-		</span>
+		<div class="flex flex-shrink-0 items-center gap-1.5">
+			{#if canTrackMachine(machine.state, machine.status, currentTime) && onToggleTrack}
+				<button
+					onclick={onToggleTrack}
+					class="rounded-full p-1 transition-colors {tracked
+						? 'text-yellow-500 hover:text-yellow-600 dark:text-yellow-400 dark:hover:text-yellow-300'
+						: 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'}"
+					title={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen blir ledig'}
+					aria-label={tracked ? 'Avbryt bevakning' : 'Meddela mig när maskinen blir ledig'}
+				>
+					{#if tracked}
+						<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+							<path
+								d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+							/>
+						</svg>
+					{:else}
+						<svg
+							class="h-5 w-5"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							aria-hidden="true"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+							/>
+						</svg>
+					{/if}
+				</button>
+			{/if}
+			<span
+				class="rounded-full px-2 py-1 text-xs text-white {getStateColor(
+					effectiveState
+				)} flex-shrink-0"
+			>
+				{getStateLabel(effectiveState)}
+			</span>
+		</div>
 	</div>
 	<p class="text-sm break-words text-gray-600 dark:text-gray-400">
 		{(() => {
