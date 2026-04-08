@@ -28,3 +28,11 @@ deploy-*
 
 # Deno
 deno.lock
+
+# Xcode / iOS local machine files
+*.xcuserstate
+**/xcuserdata/
+DerivedData/
+
+# iOS local config overrides (keep *.example committed)
+apps/ios/**/Config/*.local.xcconfig

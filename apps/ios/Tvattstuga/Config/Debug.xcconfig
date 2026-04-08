@@ -1,0 +1,7 @@
+// Debug.xcconfig
+API_BASE_URL = http:/$()/localhost:3001
+INFOPLIST_KEY_APIBaseURL = $(API_BASE_URL)
+INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsArbitraryLoads = YES
+
+// Optional local overrides (ignored by git): Debug.local.xcconfig
+#include? "Debug.local.xcconfig"
